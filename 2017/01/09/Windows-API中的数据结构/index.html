@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Windows消息队列和消息循环 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="数据类型
+UINT 表示C语言中的无符号整型unsigned int
+PSTR表示字符串指针 char*
+WPARAM 在16位时期的windows中表示unsigned short int,现在表示UINT
+LPARAM 表示long
+WndProc 函数的返回值LRESULT实际上就是long
+入口函数WinMain被指定的WINAPI和Proc被指定的CALLBACK都表示的是_stdcal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows消息队列和消息循环">
+<meta property="og:url" content="http://yoursite.com/2017/01/09/Windows-API中的数据结构/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="数据类型
+UINT 表示C语言中的无符号整型unsigned int
+PSTR表示字符串指针 char*
+WPARAM 在16位时期的windows中表示unsigned short int,现在表示UINT
+LPARAM 表示long
+WndProc 函数的返回值LRESULT实际上就是long
+入口函数WinMain被指定的WINAPI和Proc被指定的CALLBACK都表示的是_stdcal">
+<meta property="og:updated_time" content="2017-01-09T06:41:34.132Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Windows消息队列和消息循环">
+<meta name="twitter:description" content="数据类型
+UINT 表示C语言中的无符号整型unsigned int
+PSTR表示字符串指针 char*
+WPARAM 在16位时期的windows中表示unsigned short int,现在表示UINT
+LPARAM 表示long
+WndProc 函数的返回值LRESULT实际上就是long
+入口函数WinMain被指定的WINAPI和Proc被指定的CALLBACK都表示的是_stdcal">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Windows-API中的数据结构" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/01/09/Windows-API中的数据结构/" class="article-date">
+  <time datetime="2017-01-09T06:12:37.000Z" itemprop="datePublished">2017-01-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/windows编程/">windows编程</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Windows消息队列和消息循环
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><ul>
+<li>UINT 表示C语言中的无符号整型unsigned int</li>
+<li>PSTR表示字符串指针 char*</li>
+<li>WPARAM 在16位时期的windows中表示unsigned short int,现在表示UINT</li>
+<li>LPARAM 表示long</li>
+<li>WndProc 函数的返回值LRESULT实际上就是long</li>
+<li>入口函数WinMain被指定的WINAPI和Proc被指定的CALLBACK都表示的是_stdcall，表示Windows和用户应用程序之间发生函数呼叫的参数传递方式。</li>
+</ul>
+<a id="more"></a>
+<p>句柄是Windows API中大量使用的一种类型，比如HINSTANCE, HWND, HDC, HICON, HCUROR, HBRUSH。它们其实是一个32位的整数，代表某种特定的对象。据我所知这东西似乎也是单任务时期Windows的遗留产物，把同一个程序的不同实例进行标记，从而可以在它们之前进行内存上的继承。</p>
+<h2 id="消息"><a href="#消息" class="headerlink" title="消息"></a>消息</h2><p>消息就是一个整型值.如果你查看一下你的头文件的话(当你去调查API的工作机制的话,这是一个非常好的也是大多数人都有的习惯)你就发现下面这些东西:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">#define WM_INITDIALOG                   0x0110</div><div class="line">#define WM_COMMAND                      0x0111</div><div class="line">#define WM_LBUTTONDOWN                  0x0201</div></pre></td></tr></table></figure></p>
+<p>消息是用于底层这个层次上,窗口之间的通信.假如你希望窗口或是控件(其实也是一个特殊的窗口)做某个事情的话,你就发送给它一个消息. 假如有另一个窗口希望你做某个事情的话,它也送一个消息给你.假如有比如像用户敲击键盘,移动鼠标,点击按钮之类的事件发生的话,那么这些消息就由系统发送给那些受到影响的窗口.假如你的窗口是其中的一个的话,你就要处理这个消息,对这个消息做出相应的反应.</p>
+<p>每个窗口消息都有两个参数,<code>wParam</code>和<code>lParam</code>.最初<code>wParam</code>是16位的,<code>lParam</code>是32位,但是在WIN32中,它们都是32位的.不是每条消息都用到了这些参数,而且不同的消息 对它们的使用是不同的.举个例子,<code>WM_CLOSE</code>消息就两个参数都没有用到,你可以把两个都忽略.<code>WM_COMMAND</code>消息就两个参数都用上了,<code>wParam</code>参数包含了两个值,一个是<code>HIWORD(wParam)</code>,它是消息的通知码(如果可用的话),另一个是<code>LOWORD(wParam)</code>,它是发送消息的控件或是菜单的标识符. <code>lParam</code>是发送消息的控件的<code>HWND(HWND是一种数据类型,也就是窗口的句柄</code>.控件的实质也是一个窗口,因此它也有句柄),当这个消息不是来自于一个控件或是窗口,lParam 的值就是NULL,.(比如当消息是由菜单产生时,lParam就是NULL)</p>
+<p><strong> HIWORD()和 LOWORD()是由windows定义的宏,它们的作用分别是取得一个32位的值的高两个字节(高字)和低两个字节(低字) ,(相当于是将一个双字分别去和0XFFFF0000以及0X0000FFFF作与运算,再分别向右和向左作相应16位位移后得到的结果) 在WIN32中,一个字是16位,一个双字也就是32位了. </strong></p>
+<p>发送一个消息,你可以用函数<code>PostMessage()</code>或函数<code>SendMessage()</code>. 函数<code>PostMessage()</code>的作用是将消息送到消息队列中,然后立即返回.这意味着,一旦你调用了函数 <code>PostMessage()</code>后,那么这个消息有没有得到处理就不一定了.函数 <code>SendMessage()</code>是将消息直接发送给窗口,然后要一直等窗口对这个消息的处理完成了,这个函数才会返回了.假如我们想关闭一个窗口的话,我们可以发送给这个窗口一个WM_CLOSE的消息,比如像这样做:<code>PostMessage(hwnd, WM_CLOSE, 0, 0)</code>,那么这个你去点击窗口上方的关闭按钮  的效果是一样的.请注意<code>wParam</code>和 <code>lParam</code>都是0.原因就正如我们已经谈到的那样,WM_CLOSE消息没有用到这两个参数</p>
+<h2 id="对话框"><a href="#对话框" class="headerlink" title="对话框"></a>对话框</h2><p>一旦你开始使用对话框,为了和对话框进行通信,你就会需要发送消息给对话框上的控件.为了做到这一点,你要么用函数GetDlgItem()加上控件的标识符来获得控件的句柄,然后呢,再用函数SendMessage();要么你就用函数SendDlgItemMessage(),这个函数把以上两步结合起来了. 你给这个函数一个窗口的句柄以及子窗口(也就是这个窗口上的控件)的标识符,你就可以获取标识符所对应的子窗口的句柄,接下来就是给子窗口发送消息了.函数SendDlgItemMessage()以及类似的API比如GetDlgItemMessage()可以工作在所有的窗口上,不仅仅是对话框.</p>
+<h2 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h2><p>让我们假设当你在忙于处理WM_PAINT消息时,突然用户在键盘上敲了一串键.这会发生什么事情呢?你到底是应该停下你的画画,对键盘作出响应,还是对敲下的这些键置之不理呢?显然两种方式都是不合理的.因此我们有了消息队列.当消息被送入消息队列后,你一个个的对它们进行处理,处理一个消息,就移除一个消息.(当然先来的消息先得到处理)这样可以确保存你不会错过哪条消息.当你对某条消息进行处理时,其它消息就等待在队列中,直到你来处理它们.</p>
+<h2 id="消息循环"><a href="#消息循环" class="headerlink" title="消息循环"></a>消息循环</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">while(GetMessage(&amp;Msg, NULL, 0, 0) &gt; 0)</div><div class="line">&#123;</div><div class="line">    TranslateMessage(&amp;Msg);</div><div class="line">    DispatchMessage(&amp;Msg);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>消息循环调用函数GetMessage(),这个函数它会去察看你的消息队列.假如消息队列是空的(也就是没有任何消息),那么我们的程序就停在那里,等待消息的到来.<br>当某一个导致消息被送到消息队列的事件发生时(举个例子,系统注册的鼠标点击,比如点击关闭按钮),函数GetMessage()就会返回一个正值,表明这里有一个需要得到处理的消息,而且这个消息的值被赋给了我们传递给函数GetMessage()的参数Msg,这个结构体中.如果这个消息是WM_QUIT,那么函数GetMessage()的返回值就是0.如果有错误产生的话,那么返回值就是负值.<br>我们得到消息后(消息在结构体变量Msg中),接下来就可以把消息传递给函数TranslateMessage().这个函数对消息又多做了一步处理,它将虚拟键的消息翻译成字符消息.这一步事实上是可选的,但是如果没有这一步的话,某些事情就不会发生了.<br>一旦这些做完以后,我们把消息传递给函数DispatchMessage(). 函数DispatchMessage()所做的事情就是检查消息是发送哪个窗口的,然后再去查看这个窗口的窗口过程.然后呢,它就会调用这个过程,将参数:窗口的句柄,消息以及wParam和lParam,送给窗口过程.<br>在你的窗口过程中,你就会检查消息和它的参数,然后根据消息和它的参数,你就可以做你想做的事情了!你不用对所有的消息都进行处理,对于你不想亲自去处理的消息,你就调用函数DefWindowProc()就是了.它会为你对那些没有处理的消息做一些默认的处理.(一般情况下,这个函数其实什么也没有做,也就是相当于将你没有处理的消息忽略掉了,等于那些消息从没有产生过,只是从消息队列中过了一遍.)<br>一旦你做完对消息的处理之后,你的窗口过程就返回了,函数DispatchMessage()也返回了.我们又回到了整个循环的的开始.<br>对于WINDOWS程序,这里有一个非常重要的概念.那就是你的窗口过程不是由系统调用的,事实上是你自己通过调用函数DispatchMessage()间接地调用的. 假如你想自己来调用窗口过程的话(不通过函数DispatchMessage()),你可以把接受消息的窗口,它的窗口句柄作为参数传递给函数GetWindowLong()(函数GetWindowLong()通过设置最后一个参数为GWL_WNDPROC,可以获得窗口过程的地址),这样直接得到窗口的窗口过程,然后再直接执行这个窗口过程!<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">while(GetMessage(&amp;Msg, NULL, 0, 0) &gt; 0)</div><div class="line">&#123;</div><div class="line">    WNDPROC fWndProc = (WNDPROC)GetWindowLong(Msg.hwnd, GWL_WNDPROC);</div><div class="line">    fWndProc(Msg.hwnd, Msg.message, Msg.wParam, Msg.lParam);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我在前面的例程序中尝试了这种作法,而且它确实是可行的.但是这里有许多事情,比如Unicode/ANSI的转换,调用定时器返回等等就不行了,所以呢,你可以试一试,但是不要用在实际的应用中.</p>
+<p>请注意,我们用函数GetWindowLong()获得和这个窗口相关的窗口过程.为什么不直接调用我们的WndProc()呢?是这样的,我们的消息循环负责我们程序中的所有的窗口,这些窗口包括了比如按钮,列表框之类,它们都有各自的窗口过程.因此我们要确定对不同的窗口我们调用的是相应的窗口过程.因为多个窗口都可以使用相同的窗口过程,第一个参数(窗口的句柄)就用于告诉窗口过程,消息是送给哪个窗口的.</p>
+<p>正如你所看到的那样,你的应用程序花费了绝大多数的时间在消息循环中往往返返.你非常惬意地发送一条消息给运行得正开心的窗口处理.但是当你想你的窗口退出时,你该怎么做呢?因为我们用的是一个while()循环,假如函数GetMessage()的返回值是0(OK,0),这个循环就结束了.我们也就到达我们的WinMain()的终点了,从而退出程序.这些正是函数PostQuitMessage()完成的事情.它将WM_QUIT消息送到了队列中,和返回一个正值不同,函数GetMessage()填充了Msg结构体,然后返回一个0.在这里Msg结构体的成员wParam包含了你传递给函数PostQuitMessage()的值.你要么将这个值忽略掉,要么把它作为WinMain()的返回值.也就是这个过程终止时的退出码.</p>
+<p>重要之处: 函数GetMessage()将会返回-1假如它遇到了错误的话.你要记住这一点,不然的话,在某些时候你就会被它拖住的….即使这个函数是定义成返回一个布尔值,它也可以返回除了真或假以外的其它值,因为BOOL布尔型被定义成UINT(无符号整型).下面是例程序代码,它看起来可以运行,但是在某些情况下不能正确处理. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">while(GetMessage(&amp;Msg, NULL, 0, 0))</div><div class="line">while(GetMessage(&amp;Msg, NULL, 0, 0) != 0)</div><div class="line">while(GetMessage(&amp;Msg, NULL, 0, 0) == TRUE)</div></pre></td></tr></table></figure>
+<p>上面的全是错的！ 你也许注意到了在整个教程中我用的都是第一个,正如我所提到的那样,只要函数GetMessage()的调用不失败的话(前提是你的所有代码都是正确的),它还是可以工作得很好.然而我有一点没有考虑到,那就是当你看到我写的这些文字的时候,你的代码可能在绝大多数的情况下都有错误.还有一点就是函数GetMessage()本身也可能在某些情况下调用失败 :) 我会全部检查一遍并且纠正这个错误,但是如果我漏掉了一些的话,就原谅我.<br>   <code>while(GetMessage(&amp;Msg, NULL, 0, 0) &gt; 0)</code></p>
+<p>上面这个就是对的.要取得相同效果的代码也应该总是这个样子的.<br>我希望你现在对窗口的消息循环有了一个更好的理解,假如不是这样的话,不要灰心,不要害怕,一旦你使用它们一段时间后,所有的事情都会明白的. </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/01/09/Windows-API中的数据结构/" data-id="cj1w44qfw0004f8w16z8pvfv4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/01/12/GDT结构体笔记/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GDT结构体笔记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/01/06/内存泄露与内存溢出/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">内存泄露与内存溢出</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/windows编程/">windows编程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/代码学习笔记/">代码学习笔记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/操作系统/">操作系统</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os/">os</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/汇编语言/">汇编语言</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/c/" style="font-size: 15px;">c</a> <a href="/tags/c/" style="font-size: 20px;">c#</a> <a href="/tags/os/" style="font-size: 10px;">os</a> <a href="/tags/汇编语言/" style="font-size: 10px;">汇编语言</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/04/24/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/12/GDT结构体笔记/">GDT结构体笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/09/Windows-API中的数据结构/">Windows消息队列和消息循环</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/06/内存泄露与内存溢出/">内存泄露与内存溢出</a>
+          </li>
+        
+          <li>
+            <a href="/2016/12/15/数据库笔记/">数据库笔记</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

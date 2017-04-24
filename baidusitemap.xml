@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    
+  <url>
+    <loc>http://sherzZ.com/2017/01/12/GDT%E7%BB%93%E6%9E%84%E4%BD%93%E7%AC%94%E8%AE%B0/</loc>
+    <lastmod>2017-01-12T09:11:53.725Z</lastmod>
+    <data>
+        <display>
+        <title>GDT结构体笔记</title>
+        <pubTime>2017-01-12T09:11:53.000Z</pubTime>
+        
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2017/01/09/Windows-API%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
+    <lastmod>2017-01-09T06:41:34.132Z</lastmod>
+    <data>
+        <display>
+        <title>Windows消息队列和消息循环</title>
+        <pubTime>2017-01-09T06:12:37.000Z</pubTime>
+        
+        <tag>c </tag>
+         
+         
+           
+             
+              <breadCrumb title="windows编程" url="http://sherzZ.com/categories/windows%E7%BC%96%E7%A8%8B/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2017/01/06/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B8%8E%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA/</loc>
+    <lastmod>2017-01-06T06:34:54.987Z</lastmod>
+    <data>
+        <display>
+        <title>内存泄露与内存溢出</title>
+        <pubTime>2017-01-06T03:36:42.000Z</pubTime>
+        
+        <tag>os </tag>
+         
+         
+           
+             
+              <breadCrumb title="操作系统" url="http://sherzZ.com/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2016/12/15/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AC%94%E8%AE%B0/</loc>
+    <lastmod>2016-12-15T12:11:28.551Z</lastmod>
+    <data>
+        <display>
+        <title>数据库笔记</title>
+        <pubTime>2016-12-15T11:57:36.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="代码学习笔记" url="http://sherzZ.com/categories/%E4%BB%A3%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2016/11/26/windows%E7%AA%97%E5%8F%A3%E8%BF%87%E7%A8%8B/</loc>
+    <lastmod>2016-12-15T11:48:52.604Z</lastmod>
+    <data>
+        <display>
+        <title>WndProc窗口过程</title>
+        <pubTime>2016-11-26T03:36:42.000Z</pubTime>
+        
+        <tag>c# </tag>
+         
+         
+           
+             
+              <breadCrumb title="代码学习笔记" url="http://sherzZ.com/categories/%E4%BB%A3%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2016/11/26/%E5%85%A8%E5%B1%80%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8/</loc>
+    <lastmod>2016-12-12T01:23:34.043Z</lastmod>
+    <data>
+        <display>
+        <title>GDT与LDT</title>
+        <pubTime>2016-11-26T03:36:42.000Z</pubTime>
+        
+        <tag>汇编语言 </tag>
+         
+         
+           
+             
+              <breadCrumb title="代码学习笔记" url="http://sherzZ.com/categories/%E4%BB%A3%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+  <url>
+    <loc>http://sherzZ.com/2016/11/26/c-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A7%A3%E6%9E%90/</loc>
+    <lastmod>2016-11-26T05:10:12.732Z</lastmod>
+    <data>
+        <display>
+        <title>c#数据库解析</title>
+        <pubTime>2016-11-26T03:36:42.000Z</pubTime>
+        
+        <tag>c# </tag>
+         
+         
+           
+             
+              <breadCrumb title="代码学习笔记" url="http://sherzZ.com/categories/%E4%BB%A3%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2016/11/26/c%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/</loc>
+    <lastmod>2016-11-26T05:08:40.790Z</lastmod>
+    <data>
+        <display>
+        <title>进程共享（c语言实现）</title>
+        <pubTime>2016-11-26T03:36:42.000Z</pubTime>
+        
+        <tag>c </tag>
+         
+         
+           
+             
+              <breadCrumb title="代码学习笔记" url="http://sherzZ.com/categories/%E4%BB%A3%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://sherzZ.com/2016/11/26/%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98/</loc>
+    <lastmod>2016-11-26T05:07:38.322Z</lastmod>
+    <data>
+        <display>
+        <title>内存共享（c#实现）</title>
+        <pubTime>2016-11-26T03:36:42.000Z</pubTime>
+        
+        <tag>c# </tag>
+         
+         
+           
+             
+              <breadCrumb title="代码学习笔记" url="http://sherzZ.com/categories/%E4%BB%A3%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+</urlset>

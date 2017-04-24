@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>GDT与LDT | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="引言全局描述符表与局部描述符表过去虽然看过，但是印象不深很深，后来看了《自己动手实现一个操作系统》，提到实模式到保护模式转换时，改短代码初始时候只能看懂几句，无法通透，所以过来补充点基础知识，关于本书的笔记往后补上。
+
+
+LDT属于程序，GDT属于系统，同一台计算机上的所有程序共享一个GDT。LDT描述局部于每个程序的段，包括其代码、数据、堆栈等。GDT描述系统段，包括操作系统本身。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GDT与LDT">
+<meta property="og:url" content="http://yoursite.com/2016/11/26/全局描述符表/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="引言全局描述符表与局部描述符表过去虽然看过，但是印象不深很深，后来看了《自己动手实现一个操作系统》，提到实模式到保护模式转换时，改短代码初始时候只能看懂几句，无法通透，所以过来补充点基础知识，关于本书的笔记往后补上。
+
+
+LDT属于程序，GDT属于系统，同一台计算机上的所有程序共享一个GDT。LDT描述局部于每个程序的段，包括其代码、数据、堆栈等。GDT描述系统段，包括操作系统本身。">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201008/24/48588_128261824694v4.jpg">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201008/24/48588_1282618331NT4z.jpg">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201008/24/48588_1282618334lclL.jpg">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201008/27/0_1282883657qVa7.gif">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201008/27/0_12828835640eVY.gif">
+<meta property="og:updated_time" content="2016-12-12T01:23:34.043Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GDT与LDT">
+<meta name="twitter:description" content="引言全局描述符表与局部描述符表过去虽然看过，但是印象不深很深，后来看了《自己动手实现一个操作系统》，提到实模式到保护模式转换时，改短代码初始时候只能看懂几句，无法通透，所以过来补充点基础知识，关于本书的笔记往后补上。
+
+
+LDT属于程序，GDT属于系统，同一台计算机上的所有程序共享一个GDT。LDT描述局部于每个程序的段，包括其代码、数据、堆栈等。GDT描述系统段，包括操作系统本身。">
+<meta name="twitter:image" content="http://hi.csdn.net/attachment/201008/24/48588_128261824694v4.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-全局描述符表" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/11/26/全局描述符表/" class="article-date">
+  <time datetime="2016-11-26T03:36:42.000Z" itemprop="datePublished">2016-11-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/代码学习笔记/">代码学习笔记</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      GDT与LDT
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li>引言<br>全局描述符表与局部描述符表过去虽然看过，但是印象不深很深，后来看了《自己动手实现一个操作系统》，提到实模式到保护模式转换时，改短代码初始时候只能看懂几句，无法通透，所以过来补充点基础知识，关于本书的笔记往后补上。</li>
+</ul>
+<blockquote>
+<p>LDT属于程序，GDT属于系统，同一台计算机上的所有程序共享一个GDT。<br>LDT描述局部于每个程序的段，包括其代码、数据、堆栈等。GDT描述系统段，包括操作系统本身。</p>
+</blockquote>
+<a id="more"></a>
+<h3 id="GDT"><a href="#GDT" class="headerlink" title="GDT"></a>GDT</h3><p>整个系统中只有GDT（一个处理器对应一个），可以存放在内存的任何位置，那么如何获得GDT的入口地址呢？ Intel使用一个48位的寄存器GDTR存储GDT的入口地址。使用<code>LGDT xxx</code>将GDT的入口地址装入GDTR，之后CPU根据GSTR的内容访问GDT表，相应的又LDTR，与GDTR相同的功能，只是它存放的LDT的入口地址。<br><img src="http://hi.csdn.net/attachment/201008/24/48588_128261824694v4.jpg" alt="GDTR结构"></p>
+<ul>
+<li><strong>段选择子(Selector)</strong><br>GDTR访问全局描述符表是通过“段选择子”（实模式下的段寄存器16bit）完成，为了访问一个段，需要将这个段的选择子装入6个段寄存器中的一个。在运行过程中，<code>cs</code>寄存器保存代码段的选择子，<code>ds</code>寄存器保存数据段的选择子，每个选择子16bit。<br><img src="http://hi.csdn.net/attachment/201008/24/48588_1282618331NT4z.jpg" alt="选择子结构"><br>如图所示，选择子的第2位T指出访问的是全局描述符表（0）还是局部描述符表（1），3~15位索引是LDT或GDT表的表项编号，指明在表中的位置。找到相应的描述符后使用<code>sel:offset</code>转换为线性地址。所以描述符表最大能够存储2^13=8KB个描述符。<strong>第0位RPL</strong>表示选择子的特权级，共有四个特权级(0级，1级，2级，3级)。在任务重每一个段都有一个特定的基本，每当一个程序试图访问某一个段时，就将该程序所拥有的特权级与要访问的特权级进行比较（数字越小级别越高）。系统规定，CPU只能访问同一个特权级或者级别较低特权级的段。<br><strong>GDT与LDT都是保护模式中的，之前不明白实模式与保护模式的区别，如何保护，系统级别与特权级别的区别在哪里，到这里稍微有点明白。在保护模式中通过描述符表，选择子加入了特权级别的检验</strong><br>一下是全局描述符表的数据结构：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">struct SEGMENT_DESCRIPTOR&#123;</div><div class="line">short limit_low,base_low;/*段上限的低16位和段基址的低16位*/</div><div class="line">char base_mid,access_right;/*访问权限*/</div><div class="line">char limit_high,base_hight;/*段上限的高8位和基址的高8位*/</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="LDT"><a href="#LDT" class="headerlink" title="LDT"></a>LDT</h3><p>局部描述符表可以有若干张，每个任务可以有一张。我们可以这样理解GDT和LDT：GDT为一级描述符表，LDT为二级描述符表。如图<br><img src="http://hi.csdn.net/attachment/201008/24/48588_1282618334lclL.jpg" alt="LDT"><br>LDT和GDT从本质上说是相同的，只是LDT嵌套在GDT之中。LDTR记录局部描述符表的起始位置，与GDTR不同LDTR的内容是一个段选择子。由于LDT本身同样是一段内存，也是一个段，所以它也有个描述符描述它，这个描述符就存储在GDT中，对应这个表述符也会有一个选择子，LDTR装载的就是这样一个选择子。LDTR可以在程序中随时改变，通过使用lldt指令。如上图，如果装载的是Selector 2则LDTR指向的是表LDT2。举个例子：如果我们想在表LDT2中选择第三个描述符所描述的段的地址12345678h。</p>
+<ol>
+<li>首先需要装载LDTR使它指向LDT2 使用指令lldt将Select2装载到LDTR</li>
+<li>通过逻辑地址（SEL:OFFSET）访问时SEL的index=3代表选择第三个描述符；TI=1代表选择子是在LDT选择，此时LDTR指向的是LDT2,所以是在LDT2中选择，此时的SEL值为1Ch(二进制为11 1 00b)。OFFSET=12345678h。逻辑地址为1C:12345678h</li>
+<li>由SEL选择出描述符，由描述符中的基址（Base）加上OFFSET可得到线性地址，例如基址是11111111h，则线性地址=11111111h+12345678h=23456789h</li>
+<li>此时若再想访问LDT1中的第三个描述符，只要使用lldt指令将选择子Selector 1装入再执行2、3两步就可以了（因为此时LDTR又指向了LDT1）<br>由于每个进程都有自己的一套程序段、数据段、堆栈段，有了局部描述符表则可以将每个进程的程序段、数据段、堆栈段封装在一起，只要改变LDTR就可以实现对不同进程的段进行访问。<br><img src="http://hi.csdn.net/attachment/201008/27/0_1282883657qVa7.gif" alt="段描述符"><br>P,present位,1表示所描述的段存在(有效),为0表示所描述的段无效,使用该描述符会引起异常<br>DPL,Descriptor privilege,描述符特权级别,说明所描述段的特权级别<br>DT,描述符类型位,1说明当前描述符为存储段描述符,0为系统描述符或门描述符.<br>TYPE:<br>位0:A(accessed)位,表明描述符是否已被访问;把选择子装入段寄存器时,该位被标记为1<br>位3:E(EXECUTABLE?)位,0说明所描述段为数据段;1为可执行段(代码段)<br>当为数据段时,<br>位1为W位,说明该数据段是否可写(0只读,1可写)<br>位2为ED位,说明该段的扩展方向(0向高位扩展,1向低位扩展)<br>当为可执行段是,<br>位1为R位,说明该执行段是否可读(0只执行,1可读)<br>位2为C位,0说明该段不是一致码段(普通代码段),1为一致码段<br>G为粒度位,0说明LIMIT粒度为字节,1为4K字节.<br>D位:<br>1.在可执行段中,D为1,表示使用32位地址,32/8位操作数;为0表示使用16位地址,16/8位操作数<br>2.在由SS寻址的段描述符(堆栈段?)中,D为1表示隐含操作(如PUSH/POP)使用ESP为堆栈指针,<br>  为0使用SP(隐含操作:未明确定义段属性类型USE16/USE32?66H,67H?)<br>3.在向低扩展的存储段中,D为1,表示段的上限为4G;为0上限为64K<br>存储段描述符的结构表示:<br><img src="http://hi.csdn.net/attachment/201008/27/0_12828835640eVY.gif" alt=""><br>分段管理可以把虚拟地址转换成线性地址，而分页管理可以进一步将线性地址转换成物理地址。当CR0中的PG位置1时，启动分页管理功能，为0时，这禁止启动分页管理功能，并且把线性地址作物理地址使用。</li>
+</ol>
+<p>虚拟地址转为线性地址：</p>
+<p>线性地址= 段基指 + 偏移地址</p>
+<p>32位线性地址转为物理地址：<br>32位分为:<br>页目录索引：占最高10位，指示页目录表中第几个页表描述符<br>页表索引：占12位到21位，也是10位。指示这页表中第几个页描述符<br>页描述符：线性地址的低12位为页内偏移量。 </p>
+<p><a href="http://blog.csdn.net/billpig/article/details/5833980" target="_blank" rel="external">具体描述转载自csdn</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/11/26/全局描述符表/" data-id="cj1w44qgl000ef8w1db368z28" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/汇编语言/">汇编语言</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/11/26/windows窗口过程/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          WndProc窗口过程
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/11/26/共享内存/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">内存共享（c#实现）</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/windows编程/">windows编程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/代码学习笔记/">代码学习笔记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/操作系统/">操作系统</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os/">os</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/汇编语言/">汇编语言</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/c/" style="font-size: 15px;">c</a> <a href="/tags/c/" style="font-size: 20px;">c#</a> <a href="/tags/os/" style="font-size: 10px;">os</a> <a href="/tags/汇编语言/" style="font-size: 10px;">汇编语言</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/04/24/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/12/GDT结构体笔记/">GDT结构体笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/09/Windows-API中的数据结构/">Windows消息队列和消息循环</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/06/内存泄露与内存溢出/">内存泄露与内存溢出</a>
+          </li>
+        
+          <li>
+            <a href="/2016/12/15/数据库笔记/">数据库笔记</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

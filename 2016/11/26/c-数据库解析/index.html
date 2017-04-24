@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>c#数据库解析 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="引言工作需要将数十万条文本数据解析存入Mysql数据库中，代码使用C#实现，存储效率还可以，以下是一些主要代码的说明。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="c#数据库解析">
+<meta property="og:url" content="http://yoursite.com/2016/11/26/c-数据库解析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="引言工作需要将数十万条文本数据解析存入Mysql数据库中，代码使用C#实现，存储效率还可以，以下是一些主要代码的说明。">
+<meta property="og:updated_time" content="2016-11-26T05:10:12.732Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="c#数据库解析">
+<meta name="twitter:description" content="引言工作需要将数十万条文本数据解析存入Mysql数据库中，代码使用C#实现，存储效率还可以，以下是一些主要代码的说明。">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-c-数据库解析" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/11/26/c-数据库解析/" class="article-date">
+  <time datetime="2016-11-26T03:36:42.000Z" itemprop="datePublished">2016-11-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/代码学习笔记/">代码学习笔记</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      c#数据库解析
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li>引言<br>工作需要将数十万条文本数据解析存入Mysql数据库中，代码使用C#实现，存储效率还可以，以下是一些主要代码的说明。</li>
+</ul>
+<a id="more"></a>
+<h1 id="c-项目代码"><a href="#c-项目代码" class="headerlink" title="c# 项目代码"></a>c# 项目代码</h1><h2 id="txtdataToMysql"><a href="#txtdataToMysql" class="headerlink" title="txtdataToMysql"></a>txtdataToMysql</h2><p>项目描述：解析文本文件，该文件使用爬虫爬下的数十万条数据，主要是图片以及图片关键字，图片信息使用<code>&#39;,&#39;</code>分隔，关键字使用 <code>&#39; &#39;</code>（一个空格）,关键字不允许重复。<br><!--more--></p>
+<ul>
+<li>分析需要创建的数据库<br>该数据库为多对多，所以需要三张表，一张表为<code>image_info</code>，一张为<code>image_keyword</code>，一张为关系表<code>img_and_key_relation</code>。在这里并没有添加外键，加入外键后插入数据难度比较大，<code>Mysql</code>还没有具体学习过，关于主键与外键的关系，以及外键的作用等以后补充。以下为创建数据库的代码   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">create database emotion;  </div><div class="line">use emotion;   </div><div class="line">create table image_Keyword(keyword_id int(4) not null primary key,keyword varchar(40) not null);</div><div class="line">create table image_info(image_id int(4) not null primary key,id_other varchar(20) not null,id_self varchar(9) not null,image_url varchar(100) not null);</div><div class="line">create table img_and_key_relation(relation_id int(4) not null primary key auto_increment,keyword_id int(4) not null,image_id int(4) not null);</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这里并没有将<code>image_info</code>与<code>image_keyword</code>的主键设为自动增加，为了插入<code>img_and_key_relation</code>表时能够获得其余两张表的键值，具体获得方法将在代码中讲解。<br> 解析文本<br>  代码使用c#写的所以可以使用按行读取文本，使用<code>Split()</code>方法将文本进行解析，对于文本解析专门设置了一个<code>class TxtFilter</code>，在该类中实现文本解析方法，在插入关键字时，使用<code>Dictionary&lt;string, int&gt; keywordDic</code>,将关键字存入字典中，字典的关键字为<code>解析的关键字</code>,使用字典因为要求键值唯一，这样在匹配关键字是可以方便，开始的时候并没有注意到Mysql数据库大小写不敏感，而c#的字典键值为大小写敏感的，所有在插入关键字是有些重复了，设置字典大小写不敏感需要如此创建字典<br><code>Dictionary&lt;string, int&gt; keywordDic = new Dictionary&lt;string, int&gt;(StringComparer.OrdinalIgnoreCase);</code>这样可以保证插入的关键字唯一。对判断关键字的唯一性使用<code>hashset</code>也是可以，但是不知道它能否无视大小写，所以还需要补充，<code>hashset</code>的时间复杂度为<code>O(1)</code>,而<code>Dictionary</code>的时间复杂度为<code>O(n)</code>，当数据量比较大时查找速度比较快。<code>Dictionary</code>与<code>hashset</code>的区别再去字典使用<code>key</code>查找<code>value</code>,查找<code>value</code>的速度比较快，而<code>hashset</code>为一个集合，关于这两个的区别以后还会补充，目前只知道这些。  </p>
+<ul>
+<li>c#连接Mysql数据库<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">private static string constr = @&quot;Server=localhost;UserId=root;password=yourpassword;Database=databaseName&quot;;</div><div class="line">       public MySqlConnection sqlConnection() &#123;</div><div class="line">           MySqlConnection conn = new MySqlConnection(constr);</div><div class="line">           conn.Open();</div><div class="line">           string msg = conn.State.ToString();</div><div class="line">           return conn;</div><div class="line">       &#125;</div><div class="line">       public void sqlConnectionClose(MySqlConnection conn) &#123;</div><div class="line">           conn.Close();</div><div class="line">       &#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这里创建了一个数据库类，在该类中实现以上两种方法，目的保护数据库账户密码，在这里并不需要，只是个人的一点想法，不知道对错</p>
+<ul>
+<li>如何大批量插入数据到Mysql中<br>这里参考了<a href="http://blog.csdn.net/wwwww112233/article/details/8562630" target="_blank" rel="external">链接</a>采用了事物处理的方法，具体的还需要进一步学习。主要是将插入语句放入到一个<code>List&lt;string&gt;</code>中，所以需要解析文本，生成插入语句，将所有的插入语句添加到一个列表中，为了检查插入语句的正确性，将所有的插入语句写入到一个txt文本中，方便检查。</li>
+<li>txtFilter类分析<br>解析的文本文件由一些特点，有些图片没有关键字，所以对于这些信息需要判断删除，并且解析关键字的时候有的关键字是空格，这些问题在开始的时候都没有考虑到。所以在原来的代码上添加了一些判定条件。为了检查方便将三张表的插入语句各自打印了出来，有些代码存在重复，可以优化一些，比如针对不同的操作设定操作码，使用<code>switch case</code>语句，选择不同的筛选方式。先写出关键的文本解析语句，将所有插入语句存入<code>List&lt;string&gt;</code>中，并且定义了将插入语句写入文本的函数，这样有利于查看插入语句是否存在问题。以下是主要函数代码：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line">public List&lt;string&gt; filterToSqlCommond2(string fileName)</div><div class="line">&#123;</div><div class="line">    List&lt;string&gt; SQLStringList = new List&lt;string&gt;();</div><div class="line">    Data fileData = new Data();</div><div class="line">    Dictionary&lt;string, int&gt; keywordDic = new Dictionary&lt;string, int&gt;(StringComparer.OrdinalIgnoreCase);</div><div class="line">    string sqlCommond=&quot;&quot;;</div><div class="line">    int numOfKeyword = 0;</div><div class="line">    int numOfImage = 0;</div><div class="line">    //如果使用HashSet判断关键字是否存在会更快一些，这里并没有用这种方法</div><div class="line">    //HashSet&lt;string&gt; keywordSet = new HashSet&lt;string&gt;();</div><div class="line">    StreamReader sr = new StreamReader(fileName);</div><div class="line">    string strContent;</div><div class="line">    while ((strContent = sr.ReadLine()) != null)</div><div class="line">    &#123;</div><div class="line">        string[] strArr = strContent.Split(&apos;,&apos;);</div><div class="line">        fileData.id_other = strArr[0];</div><div class="line">        fileData.id_self = strArr[1];</div><div class="line">        fileData.image_url = strArr[3];</div><div class="line">        string insertImageCommond = &quot;&quot;;</div><div class="line">        string insertKeyAndR = &quot;&quot;;</div><div class="line">        string[] keyword = strArr[4].Split(&apos; &apos;);</div><div class="line">        //numKeyword表示读取每一行获得的关键字个数</div><div class="line">        int numKeyword = keyword.Length;</div><div class="line">        switch(numKeyword)&#123;</div><div class="line">            case 1:</div><div class="line">                if (!string.IsNullOrEmpty(keyword[0]))</div><div class="line">                &#123;</div><div class="line">                    numOfImage += 1;</div><div class="line">                    insertImageCommond = string.Format(@&quot;insert into image(image_id,id_other,id_self,image_url) values(&apos;&#123;0&#125;&apos;,&apos;&#123;1&#125;&apos;,&apos;&#123;2&#125;&apos;,&apos;&#123;3&#125;&apos;);&quot;, numOfImage, fileData.id_other, fileData.id_self, fileData.image_url);</div><div class="line">                    if (!keywordDic.Keys.Contains(keyword[0]))</div><div class="line">                    &#123;</div><div class="line">                        numOfKeyword += 1;</div><div class="line">                        keywordDic.Add(keyword[0], numOfKeyword);</div><div class="line">                        string.Format(@&quot; insert into imagekeyword(keyword_id,keyword) value(&apos;&#123;0&#125;&apos;,&apos;&#123;1&#125;&apos;);insert into img_and_key_relation(keyword_id,image_id) values(&apos;&#123;2&#125;&apos;,&apos;&#123;3&#125;&apos;);&quot;, keywordDic[keyword[0]], keyword[0], keywordDic[keyword[0]], numOfImage);</div><div class="line">                    &#125;</div><div class="line">                    else</div><div class="line">                    &#123;</div><div class="line">                        int keyword_id = keywordDic[keyword[0]];</div><div class="line">                        insertKeyAndR = insertKeyAndR + string.Format(@&quot;insert into img_and_key_relation(keyword_id,image_id) values(&apos;&#123;0&#125;&apos;,&apos;&#123;1&#125;&apos;);&quot;, keyword_id, numOfImage);</div><div class="line">                    &#125;                           </div><div class="line">                &#125;</div><div class="line">                 sqlCommond = insertImageCommond + insertKeyAndR;</div><div class="line">                 SQLStringList.Add(sqlCommond);</div><div class="line">                break;</div><div class="line">            default:</div><div class="line">                numOfImage += 1;</div><div class="line">                insertImageCommond = string.Format(@&quot;insert into image(image_id,id_other,id_self,image_url) values(&apos;&#123;0&#125;&apos;,&apos;&#123;1&#125;&apos;,&apos;&#123;2&#125;&apos;,&apos;&#123;3&#125;&apos;);&quot;, numOfImage, fileData.id_other, fileData.id_self, fileData.image_url);</div><div class="line">                for (int i = 0; i &lt; numKeyword; i++)</div><div class="line">                &#123;</div><div class="line">                    if (!string.IsNullOrEmpty(keyword[i]))</div><div class="line">                    &#123;</div><div class="line">                        if (!keywordDic.Keys.Contains(keyword[i]))</div><div class="line">                        &#123;</div><div class="line">                            numOfKeyword += 1;</div><div class="line">                            keywordDic.Add(keyword[i], numOfKeyword);</div><div class="line">                            insertKeyAndR = insertKeyAndR + string.Format(@&quot; insert into imagekeyword(keyword_id,keyword) value(&apos;&#123;0&#125;&apos;,&apos;&#123;1&#125;&apos;);insert into img_and_key_relation(keyword_id,image_id) values(&apos;&#123;2&#125;&apos;,&apos;&#123;3&#125;&apos;);&quot;, keywordDic[keyword[i]], keyword[i], keywordDic[keyword[i]], numOfImage);</div><div class="line">                        &#125;</div><div class="line">                        else</div><div class="line">                        &#123;</div><div class="line">                            int keyword_id = keywordDic[keyword[i]];</div><div class="line">                            insertKeyAndR = insertKeyAndR + string.Format(@&quot;insert into img_and_key_relation(keyword_id,image_id) values(&apos;&#123;0&#125;&apos;,&apos;&#123;1&#125;&apos;);&quot;, keyword_id, numOfImage);</div><div class="line">                        &#125;                              </div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">                sqlCommond = insertImageCommond + insertKeyAndR;</div><div class="line">                SQLStringList.Add(sqlCommond);</div><div class="line">                break;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    return SQLStringList;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>为了将关键字是空格的图像解析出去，所以使用了两种方式，一般有空格的图像信息的键值长度为<code>1</code>，但是键值为<code>1</code>的又不一定是空格（有点啰嗦意思理解就好）所以将解析方式设为两种，键值长度为<code>1</code>与<code>&gt;1</code>两种。然后判断键值是否为<code>空格</code>，不是空格的话将图像长度<code>+1</code>，数据库中图像表的键值与图片长度（相当于图片的<code>index</code>）相关联。<br>因为一个图像不一定有一个关键字，所以图像的插入语句与关键字与关系表的插入语句分开统计。获得每个图片关键字的长度，将每一个图片的关键字使用<code>Sqlit(&#39; &#39;)</code>解析到一个字符串数组中，遍历字符串判断关键字是否存在在字典中，不存在的话将该关键字插入到关键字表中，存在的话直接在关键字字典中查找该关键字的键值，将图像的键值与该关键字的键值插入到关系表中。最后将该图片的所有插入语句赋值给<code>sqlCommond</code>，加入到<code>指令列表SQLStringList</code>中，解析完后返回列表。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/11/26/c-数据库解析/" data-id="cj1w44qfq0002f8w1mer4cu83" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c#</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/15/数据库笔记/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          数据库笔记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/11/26/c共享内存/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">进程共享（c语言实现）</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/windows编程/">windows编程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/代码学习笔记/">代码学习笔记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/操作系统/">操作系统</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os/">os</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/汇编语言/">汇编语言</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/c/" style="font-size: 15px;">c</a> <a href="/tags/c/" style="font-size: 20px;">c#</a> <a href="/tags/os/" style="font-size: 10px;">os</a> <a href="/tags/汇编语言/" style="font-size: 10px;">汇编语言</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/04/24/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/12/GDT结构体笔记/">GDT结构体笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/09/Windows-API中的数据结构/">Windows消息队列和消息循环</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/06/内存泄露与内存溢出/">内存泄露与内存溢出</a>
+          </li>
+        
+          <li>
+            <a href="/2016/12/15/数据库笔记/">数据库笔记</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

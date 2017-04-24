@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>进程共享（c语言实现） | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="引言工作需要修改一个bug，bug原因是共享内存时出现内存读写错误，导致信息无法显示，在此之前并没有接触过进程间通信的问题，所以学习了一下相关的知识，以下是网上的步骤讲解，做个笔记，方便以后复习。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程共享（c语言实现）">
+<meta property="og:url" content="http://yoursite.com/2016/11/26/c共享内存/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="引言工作需要修改一个bug，bug原因是共享内存时出现内存读写错误，导致信息无法显示，在此之前并没有接触过进程间通信的问题，所以学习了一下相关的知识，以下是网上的步骤讲解，做个笔记，方便以后复习。">
+<meta property="og:updated_time" content="2016-11-26T05:08:40.790Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="进程共享（c语言实现）">
+<meta name="twitter:description" content="引言工作需要修改一个bug，bug原因是共享内存时出现内存读写错误，导致信息无法显示，在此之前并没有接触过进程间通信的问题，所以学习了一下相关的知识，以下是网上的步骤讲解，做个笔记，方便以后复习。">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-c共享内存" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/11/26/c共享内存/" class="article-date">
+  <time datetime="2016-11-26T03:36:42.000Z" itemprop="datePublished">2016-11-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/代码学习笔记/">代码学习笔记</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      进程共享（c语言实现）
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ul>
+<li>引言<br>工作需要修改一个bug，bug原因是共享内存时出现内存读写错误，导致信息无法显示，在此之前并没有接触过进程间通信的问题，所以学习了一下相关的知识，以下是网上的步骤讲解，做个笔记，方便以后复习。</li>
+</ul>
+<a id="more"></a>
+<h2 id="c进程共享的实现"><a href="#c进程共享的实现" class="headerlink" title="c进程共享的实现"></a>c进程共享的实现</h2><h3 id="同机进程共享内存"><a href="#同机进程共享内存" class="headerlink" title="同机进程共享内存"></a>同机进程共享内存</h3><ul>
+<li><strong>步骤</strong><br>1.服务器端进程调用内存映射函数<code>CreateFileMapping</code>创建一个有名字标识的共享内存;<br><strong>CreateFileMapping原型如下：</strong><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">HANDLE CreateFileMapping (</div><div class="line">HANDLE hFile, // 映射文件的句柄，若设为0xFFFFFFFF(即：INVALID_HANDLE_VALUE)则创建一个进程间共享的对象</div><div class="line">LPSECURITY_ATTRIBUTES lpFileMappingAttributes, //安全属性</div><div class="line">DWORD flProtect, //保护方式</div><div class="line">DWORD dwMaximumSizeHigh, //对象的大小</div><div class="line">DWORD dwMaximumSizeLow, </div><div class="line">LPCTSTR lpName // 映射文件名，即共享内存的名称</div><div class="line">);</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<!--more-->
+<p>与虚拟内存类似，保护方式参数可以是PAGE_READONLY或是PAGE_READWRITE。如果多进程都对同一共享内存进行写访问，则必须保持相互间同步。映射文件还可以PAGE_WRITECOPY标志，可以保证其原始数据不会遭到破坏，同时允许其他进程在必要时自由的操作数据的拷贝。</p>
+<p><strong>创建一个名为“zzj”的长度为4096字节的有名映射文件：</strong><br><code>HANDLE m_hMapFile=CreateFileMapping((HANDLE)0xFFFFFFFF,NULL,PAGE_READWRITE,0,0x1000,&quot; zzj&quot;);</code></p>
+<p>2.创建文件映射对象后，服务器端进程调用<code>MapViewOfFile</code>函数映射到本进程的地址空间内<br><strong>映射缓存区视图</strong><br><code>void* m_pBaseMapFile=MapViewOfFile(m_hMapFile,FILE_MAP_READ|FILE_MAP_WRITE,0,0,0);</code></p>
+<p>3.客户端进程访问共享内存对象，需要通过内存对象名调用<code>OpenFileMapping</code>函数，获得共享内存的句柄<br><code>HANDLE m_hMapFile =OpenFileMapping(FILE_MAP_WRITE,FALSE,&quot; zzj&quot;);</code></p>
+<p>4.如果客户端进程获得共享内存对象的句柄成功，则调用<code>MapViewOfFile</code>函数来映射对象视图。用户用该对象视图来进行数据读写操作，达到数据通信的目的。<br><strong>映射缓存区视图</strong><br><code>void* m_pBaseMapFile=MapViewOfFile(m_hMapFile,FILE_MAP_READ|FILE_MAP_WRITE,0,0,0);</code></p>
+<p>5.当用户进程结束共享内存后，调用<code>UnmapViewOfIFile</code>函数以取消其地址空间内的视图<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">if (m_pBaseMapFile) </div><div class="line">&#123; </div><div class="line">  UnmapViewOfFile(m_pBaseMapFile); </div><div class="line">  SharedMapView=NULL; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="使用文件映射实现共享内存"><a href="#使用文件映射实现共享内存" class="headerlink" title="使用文件映射实现共享内存"></a>使用文件映射实现共享内存</h3><p>FileMapping用于将存在于磁盘的文件放进一个进程的虚拟地址空间，并在该进程的虚拟地址空间中产生一个区域用于“存放”该文件，这个空间就叫做File View（存放在进程的虚拟内存中），系统并同时产生一个File Mapping Object（存放于物理内存中）用于维持这种映射关系，这样当多个进程需要读写那个文件的数据时，它们的File View其实对应的都是同一个File Mapping Object，这样做可节省内存和保持数据的同步性，并达到数据共享的目的。</p>
+<p>当然在一个应用向文件中写入数据时，其它进程不应该去读取这个正在写入的数据。这就需要进行一些同步的操作。下边来看一下具体的API。</p>
+<p><strong>CreateFileMaping的用法：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">HANDLE CreateFileMapping( //返回FileMapping Object的句柄</div><div class="line">HANDLE hFile, //想要产生映射的文件的句柄</div><div class="line">LPSECURITY_ATTRIBUTES lpAttributes, //安全属性（只对NT和2000生效）</div><div class="line">DWORD flProtect, //保护标致</div><div class="line">DWORD dwMaximumSizeHigh, //在DWORD的高位中存放File Mapping Object的大小</div><div class="line">DWORD dwMaximumSizeLow, //在DWORD的低位中存放File Mapping Object的大小（通常这两个参数有一个为0）</div><div class="line">LPCTSTR lpName //File Mapping Object的名称。</div><div class="line">);</div></pre></td></tr></table></figure></p>
+<p><strong>1)物理文件句柄</strong></p>
+<p>任何可以获得的物理文件句柄，如果你需要创建一个物理文件无关的内存映射也无妨，将它设置成为 0xFFFFFFFF(INVALID_HANDLE_VALUE)就可以了.</p>
+<p>如果需要和物理文件关联，要确保你的物理文件创建的时候的访问模式和”保护设置”匹配，比如:物理文件只读，内存映射需要读写就会发生错误。推荐你的物理文件使用独占方式创建。</p>
+<p>如果使用 INVALID_HANDLE_VALUE，也需要设置需要申请的内存空间的大小，无论物理文件句柄参数是否有效,这样 CreateFileMapping就可以创建一个和物理文件大小无关的内存空间给你,甚至超过实际文件大小，如果你的物理文件有效，而大小参数为0，则返回给你的是一个和物理文件大小一样的内存空间地址范围。返回给你的文件映射地址空间是可以通过复制，集成或者命名得到，初始内容为0。</p>
+<p><strong>2)保护设置</strong></p>
+<p>就是安全设置,不过一般设置NULL就可以了,使用默认的安全配置. 在win2k下如果需要进行限制,这是针对那些将内存文件映射共享给整个网络上面的应用进程使用是,可以考虑进行限制.</p>
+<p><strong>3)高位文件大小</strong></p>
+<p>32位地址空间,设置为0。</p>
+<p><strong>4) 共享内存名称</strong></p>
+<p>命名可以包含 “Global”或者 “Local” 前缀在全局或者会话名空间初级文件映射.其他部分可以包含任何除了()以外的字符,可以参考 Kernel Object Name Spaces.</p>
+<p>5)调用CreateFileMapping的时候GetLastError的对应错误</p>
+<p>ERROR_FILE_INVALID 如果企图创建一个零长度的文件映射,应有此报<br>ERROR_INVALID_HANDLE 如果发现你的命名内存空间和现有的内存映射,互斥量,信号量,临界区同名就麻烦了<br>ERROR_ALREADY_EXISTS 表示内存空间命名已经存在</p>
+<p>使用函数CreateFileMapping创建一个想共享的文件数据句柄，然后使用MapViewOfFile来获取共享的内存地址，然后使用OpenFileMapping函数在另一个进程里打开共享文件的名称，这样就可以实现不同的进程共享数据。</p>
+<p>代码示例：这个程序包括一个客户端和一个服务端，服务端创建共享内存，客户端打开共享内存，两者通过两个事件互斥访问共享内存，实现一个小功能，就是服务端进程从控制台读入数据发送给客户端进程。</p>
+<p><strong>服务端：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div></pre></td><td class="code"><pre><div class="line">#include &quot;stdafx.h&quot; </div><div class="line">#include &lt;Windows.h&gt; </div><div class="line">#include &lt;iostream&gt; </div><div class="line">using namespace std; </div><div class="line">  </div><div class="line">int main() </div><div class="line">&#123; </div><div class="line">  HANDLE hMutex      = NULL; </div><div class="line">  HANDLE hFileMapping   = NULL; </div><div class="line">  LPVOID lpShareMemory  = NULL; </div><div class="line">  HANDLE hServerWriteOver = NULL; </div><div class="line">  HANDLE hClientReadOver = NULL; </div><div class="line">  </div><div class="line">  //create share memory </div><div class="line">  hFileMapping = CreateFileMapping(INVALID_HANDLE_VALUE, </div><div class="line">    NULL, </div><div class="line">    PAGE_READWRITE, </div><div class="line">    0, </div><div class="line">    1024*1024, </div><div class="line">    L&quot;ShareMemoryTest&quot;); </div><div class="line">  if (NULL == hFileMapping) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;CreateFileMapping fail:&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto SERVER_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  lpShareMemory = MapViewOfFile(hFileMapping, </div><div class="line">    FILE_MAP_ALL_ACCESS, </div><div class="line">    0, </div><div class="line">    0,   //memory start address </div><div class="line">    0);   //all memory space </div><div class="line">  if (NULL == lpShareMemory) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;MapViewOfFile&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto SERVER_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  hMutex = CreateMutex(NULL, FALSE, L&quot;SM_Mutex&quot;); </div><div class="line">  if (NULL == hMutex || ERROR_ALREADY_EXISTS == GetLastError()) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;CreateMutex&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto SERVER_SHARE_MEMORY_END; </div><div class="line">  &#125;//多个线程互斥访问 </div><div class="line">  </div><div class="line">  //send data </div><div class="line">  hServerWriteOver = CreateEvent(NULL, </div><div class="line">    TRUE, </div><div class="line">    FALSE, </div><div class="line">    L&quot;ServerWriteOver&quot;); </div><div class="line">  hClientReadOver = CreateEvent(NULL, </div><div class="line">    TRUE, </div><div class="line">    FALSE, </div><div class="line">    L&quot;ClientReadOver&quot;); </div><div class="line">  if (NULL == hServerWriteOver || </div><div class="line">    NULL == hClientReadOver) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;CreateEvent&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto SERVER_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  char p = 0; </div><div class="line">  char* q = (char*)lpShareMemory; </div><div class="line">  do </div><div class="line">  &#123; </div><div class="line">    p = getchar(); </div><div class="line">    if (WaitForSingleObject(hClientReadOver, 5*1000) != WAIT_OBJECT_0)  </div><div class="line">      goto SERVER_SHARE_MEMORY_END; </div><div class="line">    q[0] = p; </div><div class="line">    if (!ResetEvent(hClientReadOver)) goto SERVER_SHARE_MEMORY_END;//把指定的事件对象设置为无信号状态 </div><div class="line">    if (!SetEvent(hServerWriteOver)) goto SERVER_SHARE_MEMORY_END;//把指定的事件对象设置为有信号状态 </div><div class="line">  &#125; while (p != &apos;\n&apos;); </div><div class="line">  </div><div class="line">SERVER_SHARE_MEMORY_END: </div><div class="line">  //release share memory </div><div class="line">  if (NULL != hServerWriteOver)  CloseHandle(hServerWriteOver); </div><div class="line">  if (NULL != hClientReadOver)  CloseHandle(hClientReadOver); </div><div class="line">  if (NULL != lpShareMemory)   UnmapViewOfFile(lpShareMemory); </div><div class="line">  if (NULL != hFileMapping)    CloseHandle(hFileMapping); </div><div class="line">  if (NULL != hMutex)       ReleaseMutex(hMutex); </div><div class="line">  return 0; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><strong>客户端：</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div></pre></td><td class="code"><pre><div class="line">#include &quot;stdafx.h&quot; </div><div class="line">#include &lt;Windows.h&gt; </div><div class="line">#include &lt;iostream&gt; </div><div class="line">using namespace std; </div><div class="line">int main() </div><div class="line">&#123; </div><div class="line">  HANDLE hMutex      = NULL; </div><div class="line">  HANDLE hFileMapping   = NULL; </div><div class="line">  LPVOID lpShareMemory  = NULL; </div><div class="line">  HANDLE hServerWriteOver = NULL; </div><div class="line">  HANDLE hClientReadOver = NULL; </div><div class="line">  </div><div class="line">  hMutex = OpenMutex(MUTEX_ALL_ACCESS, </div><div class="line">    FALSE, </div><div class="line">    L&quot;SM_Mutex&quot;); </div><div class="line">  if (NULL == hMutex) </div><div class="line">  &#123; </div><div class="line">    if (ERROR_FILE_NOT_FOUND == GetLastError()) </div><div class="line">    &#123; </div><div class="line">      cout &lt;&lt; &quot;OpenMutex fail: file not found!&quot; &lt;&lt; endl; </div><div class="line">      goto CLIENT_SHARE_MEMORY_END; </div><div class="line">    &#125; </div><div class="line">    else</div><div class="line">    &#123; </div><div class="line">      cout &lt;&lt; &quot;OpenMutex fail:&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">      goto CLIENT_SHARE_MEMORY_END; </div><div class="line">    &#125; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  if (WaitForSingleObject(hMutex, 5000) != WAIT_OBJECT_0)//hMutex 一旦互斥对象处于有信号状态，则该函数返回 </div><div class="line">  &#123; </div><div class="line">    DWORD dwErr = GetLastError(); </div><div class="line">    goto CLIENT_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  //open share memory </div><div class="line">  hFileMapping = OpenFileMapping(FILE_MAP_ALL_ACCESS, </div><div class="line">    FALSE, </div><div class="line">    L&quot;ShareMemoryTest&quot;); </div><div class="line">  if (NULL == hFileMapping) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;OpenFileMapping&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto CLIENT_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  lpShareMemory = MapViewOfFile(hFileMapping, </div><div class="line">    FILE_MAP_ALL_ACCESS, </div><div class="line">    0, </div><div class="line">    0, </div><div class="line">    0); </div><div class="line">  if (NULL == lpShareMemory) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;MapViewOfFile&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto CLIENT_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  //read and write data </div><div class="line">  hServerWriteOver = CreateEvent(NULL, </div><div class="line">    TRUE, </div><div class="line">    FALSE, </div><div class="line">    L&quot;ServerWriteOver&quot;); </div><div class="line">  hClientReadOver = CreateEvent(NULL, </div><div class="line">    TRUE, </div><div class="line">    FALSE, </div><div class="line">    L&quot;ClientReadOver&quot;); </div><div class="line">  if (NULL == hServerWriteOver || </div><div class="line">    NULL == hClientReadOver) </div><div class="line">  &#123; </div><div class="line">    cout &lt;&lt; &quot;CreateEvent&quot; &lt;&lt; GetLastError() &lt;&lt; endl; </div><div class="line">    goto CLIENT_SHARE_MEMORY_END; </div><div class="line">  &#125; </div><div class="line">  </div><div class="line">  char p = 0; </div><div class="line">  char* q = (char*)lpShareMemory; </div><div class="line">  do </div><div class="line">  &#123; </div><div class="line">    if (!SetEvent(hClientReadOver))  </div><div class="line">      goto CLIENT_SHARE_MEMORY_END; </div><div class="line">  </div><div class="line">    if (WaitForSingleObject(hServerWriteOver, INFINITE) != WAIT_OBJECT_0)  </div><div class="line">      goto CLIENT_SHARE_MEMORY_END;  </div><div class="line">  </div><div class="line">    p = q[0]; </div><div class="line">    putchar(p); </div><div class="line">    if (!ResetEvent(hServerWriteOver))  </div><div class="line">      goto CLIENT_SHARE_MEMORY_END; </div><div class="line">  &#125; while (p != &apos;\n&apos;); </div><div class="line">  </div><div class="line">CLIENT_SHARE_MEMORY_END: </div><div class="line">  //release share memory </div><div class="line">  if (NULL != hServerWriteOver)  CloseHandle(hServerWriteOver); </div><div class="line">  if (NULL != hClientReadOver)  CloseHandle(hClientReadOver); </div><div class="line">  if (NULL != lpShareMemory)   UnmapViewOfFile(lpShareMemory); </div><div class="line">  if (NULL != hFileMapping)    CloseHandle(hFileMapping); </div><div class="line">  if (NULL != hMutex)       ReleaseMutex(hMutex); </div><div class="line">  return 0; </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/11/26/c共享内存/" data-id="cj1w44qgb0008f8w1ogyxb1ve" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/11/26/c-数据库解析/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          c#数据库解析
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/11/26/windows窗口过程/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">WndProc窗口过程</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/windows编程/">windows编程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/代码学习笔记/">代码学习笔记</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/操作系统/">操作系统</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/c/">c#</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os/">os</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/汇编语言/">汇编语言</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/c/" style="font-size: 15px;">c</a> <a href="/tags/c/" style="font-size: 20px;">c#</a> <a href="/tags/os/" style="font-size: 10px;">os</a> <a href="/tags/汇编语言/" style="font-size: 10px;">汇编语言</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/04/24/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/12/GDT结构体笔记/">GDT结构体笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/09/Windows-API中的数据结构/">Windows消息队列和消息循环</a>
+          </li>
+        
+          <li>
+            <a href="/2017/01/06/内存泄露与内存溢出/">内存泄露与内存溢出</a>
+          </li>
+        
+          <li>
+            <a href="/2016/12/15/数据库笔记/">数据库笔记</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
